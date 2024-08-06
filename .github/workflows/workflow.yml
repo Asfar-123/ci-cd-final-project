@@ -33,7 +33,6 @@ jobs:
         
 
       - name: Run unit tests
-        run: |
-          pip install pytest
-          pytest
+        run: nosetests -v --with-spec --spec-color --with-coverage --cover-package=app          
+          
 
