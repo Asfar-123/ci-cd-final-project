@@ -28,6 +28,8 @@ kind: Task
 metadata:
   name: nose
 spec:
+  workspaces:
+    - name: output
   steps:
     - name: run-nose-tests
       image: python:3.8
@@ -40,22 +42,35 @@ kind: Task
 metadata:
   name: build
 spec:
+  workspaces:
+    - name: output
+  params:
+    - name: app-name
+      type: string
+    - name: build-image
+      type: string
   steps:
     - name: build
       image: docker
       script: |
-        docker build -t my-microservice .
+        docker build -t $(params.build-image) .
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: deploy
 spec:
+  params:
+    - name: app-name
+      type: string
+    - name: build-image
+      type: string
   steps:
     - name: deploy
       image: 'quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:cee5e12a3b23bcfe1d06a3f5b9eeec20b48b2c30'
       script: |
-        oc apply -f k8s/deployment.yaml
+        oc create deployment $(params.app-name) --image=$(params.build-image) --dry-run=client -o yaml | oc apply -f -
+
 
 
   
