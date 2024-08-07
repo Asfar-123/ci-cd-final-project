@@ -1,6 +1,19 @@
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
+  name: cleanup-workspace
+spec:
+  workspaces:
+    - name: output
+  steps:
+    - name: cleanup
+      image: 'alpine'
+      script: |
+        rm -rf $(workspaces.output.path)/*
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
   name: lint
 spec:
   steps:
@@ -9,20 +22,18 @@ spec:
       script: |
         pip install flake8
         flake8 .
-
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
-  name: test
+  name: nose
 spec:
   steps:
-    - name: test
+    - name: run-nose-tests
       image: python:3.8
       script: |
-        pip install pytest
-        pytest
-
+        pip install nose
+        nosetests
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -34,7 +45,6 @@ spec:
       image: docker
       script: |
         docker build -t my-microservice .
-
 ---
 apiVersion: tekton.dev/v1beta1
 kind: Task
@@ -47,18 +57,14 @@ spec:
       script: |
         oc apply -f k8s/deployment.yaml
 
----
-apiVersion: tekton.dev/v1beta1
-kind: Task
-metadata:
-  name: cleanup-workspace
-spec:
-  workspaces:
-    - name: output
-  steps:
-    - name: cleanup
-      image: 'alpine'
-      script: |
-        rm -rf $(workspaces.output.path)/*
+
+
+
+
+
+
+
+
+
 
        
